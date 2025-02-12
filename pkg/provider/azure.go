@@ -783,7 +783,7 @@ func (az *Cloud) updateNodeCaches(prevNode, newNode *v1.Node) {
 			az.nodeResourceGroups[newNode.ObjectMeta.Name] = strings.ToLower(newRG)
 		}
 
-		_, hasExcludeBalancerLabel := newNode.ObjectMeta.Labels[v1.LabelNodeExcludeBalancers]
+		excluded := strings.EqualFold(newNode.ObjectMeta.Labels[v1.LabelNodeExcludeBalancers], consts.TrueAnnotationValue)
 		managed, ok := newNode.ObjectMeta.Labels[consts.ManagedByAzureLabel]
 		isNodeManagedByCloudProvider := !ok || !strings.EqualFold(managed, consts.NotManagedByAzureLabelValue)
 
@@ -798,7 +798,7 @@ func (az *Cloud) updateNodeCaches(prevNode, newNode *v1.Node) {
 			az.excludeLoadBalancerNodes.Insert(newNode.ObjectMeta.Name)
 			klog.V(6).Infof("excluding Node %q from LoadBalancer because it is not managed by cloud provider", newNode.ObjectMeta.Name)
 
-		case hasExcludeBalancerLabel:
+		case excluded:
 			az.excludeLoadBalancerNodes.Insert(newNode.ObjectMeta.Name)
 			klog.V(6).Infof("excluding Node %q from LoadBalancer because it has exclude-from-external-load-balancers label", newNode.ObjectMeta.Name)
 
